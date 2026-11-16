@@ -86,6 +86,7 @@ class AuthScreen(tk.Frame):
         ).pack(anchor="w", pady=(6, 0))
 
         self.login_status = FeedbackLabel(body, wraplength=400)
+        self.login_status.configure(height=2)
         self.login_status.pack(fill="x", pady=(4, 6))
         self.login_button = FlatButton(body, "Sign In to Campus Hub", self._login)
         self.login_button.pack(fill="x")

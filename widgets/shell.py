@@ -14,6 +14,8 @@ class NavItem(tk.Frame):
         self._danger = danger
         self._active = False
         self._command = command
+        self.indicator = tk.Frame(self, bg=Colors.SURFACE, width=3)
+        self.indicator.pack(side="left", fill="y")
         self.icon = tk.Label(self, text=icon, font=font(12), bg=Colors.SURFACE, width=2, cursor="hand2")
         self.icon.pack(side="left", padx=(12, 6), pady=9)
         self.label = tk.Label(self, text=text, font=font(10, "bold" if danger else "normal"),
@@ -38,6 +40,7 @@ class NavItem(tk.Frame):
             fg = Colors.DANGER if self._danger else Colors.TEXT_MUTED
         for widget in (self, self.icon, self.label):
             widget.configure(bg=bg)
+        self.indicator.configure(bg=fg if self._active else bg)
         self.icon.configure(fg=fg)
         self.label.configure(fg=fg)
 

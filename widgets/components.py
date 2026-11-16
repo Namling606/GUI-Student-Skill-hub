@@ -538,6 +538,7 @@ def page_header(parent, title: str, subtitle: str, action_text: str = None, acti
     """Page title + subtitle (and an optional primary action button on the right)."""
     header = tk.Frame(parent, bg=Colors.BG)
     header.pack(fill="x", pady=(0, 18))
+    tk.Frame(header, bg=Colors.PRIMARY, width=4, height=42).pack(side="left", padx=(0, 12), pady=(2, 0))
     texts = tk.Frame(header, bg=Colors.BG)
     texts.pack(side="left")
     tk.Label(texts, text=title, bg=Colors.BG, fg=Colors.TEXT, font=font(20, "bold"), anchor="w").pack(anchor="w")

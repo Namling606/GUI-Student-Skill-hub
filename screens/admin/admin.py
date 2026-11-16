@@ -31,10 +31,29 @@ class AdminScreen(BaseScreen):
                     "Manage registered campus accounts, monitor talent trading activity, and inspect flagged materials.")
         TabBar(self.content, [("overview", "Overview"), ("analytics", "Analytics")], tab,
                lambda key: self.show(tab=key, range_label=range_label)).pack(fill="x", pady=(0, 18))
+        self._render_data_notice()
         if tab == "analytics":
             self._render_analytics(range_label)
         else:
             self._render_overview()
+
+    def _render_data_notice(self) -> None:
+        notice = tk.Frame(self.content, bg=Colors.PRIMARY_LIGHT, highlightthickness=1,
+                          highlightbackground=Colors.PRIMARY_LIGHT_HOVER)
+        notice.pack(fill="x", pady=(0, 16))
+        marker = tk.Frame(notice, bg=Colors.PRIMARY, width=4)
+        marker.pack(side="left", fill="y")
+        copy = tk.Frame(notice, bg=Colors.PRIMARY_LIGHT)
+        copy.pack(side="left", fill="x", expand=True, padx=14, pady=10)
+        tk.Label(copy, text="DEMO ANALYTICS", bg=Colors.PRIMARY_LIGHT, fg=Colors.PRIMARY,
+                 font=font(8, "bold")).pack(anchor="w")
+        student_count = len(self.store.directory())
+        tk.Label(
+            copy,
+            text=f"Statistics use generated sample data (1,420 students); the live directory currently has "
+                 f"{student_count} student accounts.",
+            bg=Colors.PRIMARY_LIGHT, fg=Colors.TEXT_MUTED, font=font(9), anchor="w",
+        ).pack(anchor="w", pady=(2, 0))
 
     # ==================================================================
     # Overview tab
@@ -59,6 +78,7 @@ class AdminScreen(BaseScreen):
             ("Skills Listed", f"{kpis['skills_listed']:,}", f"Average {kpis['skills_per_student']} per student", Colors.TEXT_LIGHT, False),
             ("Reported Content", f"{flags} Flags", "Needs immediate review" if flags else "All clear", Colors.DANGER, True),
         ]
+        accents = [Colors.PRIMARY, Colors.SUCCESS, Colors.WARNING, Colors.DANGER]
         row = tk.Frame(self.content, bg=Colors.BG)
         row.pack(fill="x")
         row.columnconfigure((0, 1, 2, 3), weight=1, uniform="kpi")
@@ -67,6 +87,7 @@ class AdminScreen(BaseScreen):
             if alert:
                 card.configure(highlightbackground=Colors.DANGER, highlightcolor=Colors.DANGER)
             card.grid(row=0, column=index, sticky="nsew", padx=(0 if index == 0 else 8, 0 if index == 3 else 8))
+            tk.Frame(card.body, bg=accents[index], height=3).pack(fill="x", pady=(0, 12))
             top = tk.Frame(card.body, bg=Colors.SURFACE)
             top.pack(fill="x")
             tk.Label(top, text=label, bg=Colors.SURFACE, fg=Colors.TEXT_MUTED, font=font(9)).pack(side="left")

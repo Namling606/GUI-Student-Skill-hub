@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 
 from config import Colors
 
-PALETTE = ["#2563EB", "#60A5FA", "#F59E0B", "#10B981", "#8B5CF6", "#EF4444"]
+PALETTE = [Colors.PRIMARY, "#818CF8", "#F59E0B", "#10B981", "#8B5CF6", "#EF4444"]
 FIG_SIZE = (4.6, 3.0)
 DPI = 100
 

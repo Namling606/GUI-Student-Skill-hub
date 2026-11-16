@@ -40,15 +40,15 @@ STATUS_COMPLETED = "Completed"
 # Colours (taken from the Figma file)
 # ----------------------------------------------------------------------------
 class Colors:
-    PRIMARY = "#2563EB"
-    PRIMARY_HOVER = "#1D4ED8"
-    PRIMARY_LIGHT = "#EFF6FF"
-    PRIMARY_LIGHT_HOVER = "#DBEAFE"
+    PRIMARY = "#4F46E5"
+    PRIMARY_HOVER = "#4338CA"
+    PRIMARY_LIGHT = "#EEF2FF"
+    PRIMARY_LIGHT_HOVER = "#E0E7FF"
 
-    BG = "#F8FAFC"
-    AUTH_BG = "#E8F1FD"
+    BG = "#F6F7FB"
+    AUTH_BG = "#EEF2FF"
     SURFACE = "#FFFFFF"
-    BORDER = "#E2E8F0"
+    BORDER = "#E4E7F0"
 
     TEXT = "#0F172A"
     TEXT_MUTED = "#64748B"
@@ -80,7 +80,7 @@ STATUS_STYLES = {
 
 # Palette used for initial-based avatars
 AVATAR_COLORS = [
-    "#2563EB", "#7C3AED", "#DB2777", "#EA580C",
+    "#4F46E5", "#7C3AED", "#DB2777", "#EA580C",
     "#059669", "#0891B2", "#CA8A04", "#4F46E5",
 ]
 

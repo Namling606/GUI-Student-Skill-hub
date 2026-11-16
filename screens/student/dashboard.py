@@ -49,6 +49,7 @@ class DashboardScreen(BaseScreen):
         for index, (label, value, icon, bubble_bg, bubble_fg, target) in enumerate(stats):
             card = Card(row, padding=(18, 16))
             card.grid(row=0, column=index, sticky="nsew", padx=(0 if index == 0 else 8, 0 if index == 3 else 8))
+            tk.Frame(card.body, bg=bubble_fg, height=3).pack(fill="x", pady=(0, 12))
             top = tk.Frame(card.body, bg=Colors.SURFACE)
             top.pack(fill="x")
             tk.Label(top, text=label, bg=Colors.SURFACE, fg=Colors.TEXT_MUTED, font=font(9)).pack(side="left")
