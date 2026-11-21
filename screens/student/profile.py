@@ -41,8 +41,8 @@ class ProfileScreen(BaseScreen):
         columns.pack(fill="x")
         columns.columnconfigure(0, weight=3, uniform="profile")
         columns.columnconfigure(1, weight=2, uniform="profile")
-        self._build_form(columns).grid(row=0, column=0, sticky="new", padx=(0, 12))
         self._build_preview(columns).grid(row=0, column=1, sticky="new", padx=(12, 0))
+        self._build_form(columns).grid(row=0, column=0, sticky="new", padx=(0, 12))
         self._update_preview()
 
     # ------------------------------------------------------------------
@@ -103,15 +103,39 @@ class ProfileScreen(BaseScreen):
                                         add="+")
             self.fields[key].entry.bind("<KeyRelease>", lambda _e, field_key=key: self._profile_field_changed(field_key),
                                         add="+")
-        buttons = tk.Frame(body, bg=Colors.SURFACE)
-        buttons.pack(fill="x")
-        FlatButton(buttons, "Save Profile Details", self._save, "primary").pack(side="right")
-        FlatButton(buttons, "Discard Changes", lambda: self.show(), "secondary").pack(side="right", padx=(0, 10))
+        self._profile_initial_values = self._current_profile_values()
+        self._update_profile_actions()
 
         for key in ("full_name", "course"):
             self.fields[key].entry.bind("<KeyRelease>", lambda _e: self._update_preview(), add="+")
+        for key in self._profile_last_values:
+            self.fields[key].entry.bind("<<Paste>>", lambda _e, field_key=key: self._profile_field_changed(field_key),
+                                        add="+")
+            self.fields[key].entry.bind("<<Cut>>", lambda _e, field_key=key: self._profile_field_changed(field_key),
+                                        add="+")
         self.bio.bind_change(self._update_preview)
+        self.bio.bind_change(self._update_profile_actions)
+        self.bio.text.bind("<<Paste>>", lambda _e: self._update_profile_actions(), add="+")
+        self.bio.text.bind("<<Cut>>", lambda _e: self._update_profile_actions(), add="+")
         return card
+
+    def _current_profile_values(self) -> tuple:
+        return (
+            tuple(self.fields[key].raw_value() for key in ("full_name", "course", "email")),
+            self.bio.value(),
+            self.photo_path,
+            tuple(self.achievements),
+        )
+
+    def _update_profile_actions(self) -> None:
+        if self._current_profile_values() == self._profile_initial_values:
+            self.save_button.pack_forget()
+            self.discard_button.pack_forget()
+            return
+        if not self.discard_button.winfo_manager():
+            self.discard_button.pack(side="right")
+        if not self.save_button.winfo_manager():
+            self.save_button.pack(side="right", padx=(0, 10))
 
     def _show_profile_field_error(self, key: str, message: str) -> None:
         self._profile_error_field = key
@@ -137,6 +161,7 @@ class ProfileScreen(BaseScreen):
         self._profile_last_values[key] = value
         if changed and self._profile_error_field == key:
             self._validate_profile_field(key)
+        self._update_profile_actions()
 
     def _render_photo_row(self) -> None:
         for child in self.photo_row.winfo_children():
@@ -177,6 +202,10 @@ class ProfileScreen(BaseScreen):
                  font=font(9, "bold"), anchor="w").pack(fill="x", pady=(0, 8))
         self.preview_card = Card(holder, padding=(20, 18))
         self.preview_card.pack(fill="x")
+        self.profile_actions = tk.Frame(holder, bg=Colors.BG)
+        self.profile_actions.pack(fill="x", pady=(12, 0))
+        self.save_button = FlatButton(self.profile_actions, "Save Changes", self._save, "primary")
+        self.discard_button = FlatButton(self.profile_actions, "Discard Changes", lambda: self.show(), "secondary")
         return holder
 
     def _update_preview(self) -> None:
@@ -238,6 +267,7 @@ class ProfileScreen(BaseScreen):
         self.status.clear()
         self._render_photo_row()
         self._update_preview()
+        self._update_profile_actions()
 
     @staticmethod
     def _check_photo(path: str) -> str:
@@ -261,6 +291,7 @@ class ProfileScreen(BaseScreen):
         self.photo_path = ""
         self._render_photo_row()
         self._update_preview()
+        self._update_profile_actions()
 
     def _add_achievement(self) -> None:
         if len(self.achievements) >= 6:
@@ -272,10 +303,12 @@ class ProfileScreen(BaseScreen):
             self.achievements.append(text)
             self.status.clear()
             self._render_achievements()
+            self._update_profile_actions()
 
     def _remove_achievement(self, index: int) -> None:
         del self.achievements[index]
         self._render_achievements()
+        self._update_profile_actions()
 
     def _save(self) -> None:
         name, email = self.fields["full_name"].value(), self.fields["email"].value()

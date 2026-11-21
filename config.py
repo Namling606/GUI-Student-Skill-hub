@@ -1,7 +1,4 @@
 """Central configuration: design tokens (colours, fonts) and app constants.
-
-Every visual value taken from the Figma prototype lives here so that a
-design change only needs to be made in one place.
 """
 
 import sys

@@ -55,21 +55,28 @@ def setup_styles(root: tk.Misc) -> None:
 
 
 def bind_mousewheel(root: tk.Misc) -> None:
-    """Route the mouse wheel to whichever ScrollableFrame is under the pointer."""
+    """Route mouse wheel and precision touchpad events to the hovered page."""
 
     def on_wheel(event):
-        widget = root.winfo_containing(event.x_root, event.y_root)
+        widget = event.widget
         while widget is not None:
             if isinstance(widget, ScrollableFrame):
-                if event.num == 4:
-                    direction = -1
-                elif event.num == 5:
-                    direction = 1
-                else:
-                    direction = -1 if event.delta > 0 else 1
-                widget.scroll_units(direction * 2)
-                return
+                break
             widget = getattr(widget, "master", None)
+        if widget is None:
+            widget = root.winfo_containing(event.x_root, event.y_root)
+            while widget is not None and not isinstance(widget, ScrollableFrame):
+                widget = getattr(widget, "master", None)
+        if widget is None:
+            return
+
+        if getattr(event, "num", None) == 4:
+            widget.scroll_units(-2)
+        elif getattr(event, "num", None) == 5:
+            widget.scroll_units(2)
+        else:
+            widget.scroll_wheel_delta(event.delta)
+        return "break"
 
     root.bind_all("<MouseWheel>", on_wheel)  # Windows / macOS
     root.bind_all("<Button-4>", on_wheel)  # Linux scroll up
@@ -509,6 +516,7 @@ class ScrollableFrame(tk.Frame):
 
     def __init__(self, parent, bg=Colors.BG):
         super().__init__(parent, bg=bg)
+        self._wheel_remainder = 0.0
         self.canvas = tk.Canvas(self, bg=bg, highlightthickness=0, bd=0, yscrollincrement=20)
         self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.inner = tk.Frame(self.canvas, bg=bg)
@@ -528,6 +536,16 @@ class ScrollableFrame(tk.Frame):
     def scroll_units(self, units: int) -> None:
         """Scroll only when the content is taller than the visible area."""
         if self.inner.winfo_height() > self.canvas.winfo_height():
+            self.canvas.yview_scroll(units, "units")
+
+    def scroll_wheel_delta(self, delta: int) -> None:
+        """Accumulate small precision-wheel deltas into smooth page scrolling."""
+        if self.inner.winfo_height() <= self.canvas.winfo_height():
+            return
+        self._wheel_remainder -= delta / 60
+        units = int(self._wheel_remainder)
+        if units:
+            self._wheel_remainder -= units
             self.canvas.yview_scroll(units, "units")
 
     def scroll_to_top(self) -> None:

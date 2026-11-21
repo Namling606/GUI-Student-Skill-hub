@@ -401,6 +401,13 @@ class DataStore:
         }
         self.skills = self._append(self.skills, row)
 
+    def update_skill(self, skill_id: int, name: str, category: str, level: str, description: str) -> None:
+        """Update a registered skill and keep its proficiency in sync with its level."""
+        mask = self.skills["skill_id"] == skill_id
+        self.skills.loc[mask, ["name", "category", "level", "proficiency", "description"]] = [
+            name.strip(), category, level, LEVEL_TO_PERCENT.get(level, 50), description.strip(),
+        ]
+
     def delete_skill(self, skill_id: int) -> None:
         self.skills = self.skills[self.skills["skill_id"] != skill_id]
 

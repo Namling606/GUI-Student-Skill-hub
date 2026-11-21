@@ -62,6 +62,7 @@ class SkillsScreen(BaseScreen):
         tk.Label(texts, text=skill["category"], bg=Colors.SURFACE, fg=Colors.TEXT_MUTED, font=font(9)).pack(anchor="w")
         FlatButton(top, ICONS["delete"], lambda s=skill: self._delete(s), "danger_soft", padx=14, pady=6).pack(side="right")
         Pill(top, skill["level"]).pack(side="right", padx=12)
+        FlatButton(top, "Edit", lambda s=skill: self._edit(s), "secondary", size=9).pack(side="right")
 
         meta = tk.Frame(card.body, bg=Colors.SURFACE)
         meta.pack(fill="x", pady=(10, 4))
@@ -73,10 +74,12 @@ class SkillsScreen(BaseScreen):
     def _build_form(self, parent) -> Card:
         card = Card(parent, padding=(24, 22))
         body = card.body
-        section_title(body, "Add New Capability", size=14).pack(anchor="w")
+        self.form_title = section_title(body, "Add New Capability", size=14)
+        self.form_title.pack(anchor="w")
         tk.Label(body, text="Register a new student service or technical skill", bg=Colors.SURFACE,
                  fg=Colors.TEXT_MUTED, font=font(9)).pack(anchor="w", pady=(0, 14))
 
+        self._editing_skill_id = None
         self.name_field = FormField(body, "Skill name", "e.g. React Frontend Development")
         self.name_field.pack(fill="x", pady=(0, 12))
         self.category_field = ComboField(body, "Skill category", SKILL_CATEGORIES, default=SKILL_CATEGORIES[0])
@@ -91,15 +94,32 @@ class SkillsScreen(BaseScreen):
 
         self.status = FeedbackLabel(body, wraplength=360)
         self.status.pack(fill="x", pady=(0, 6))
-        FlatButton(body, "⊕  Register Skill to Profile", self._register).pack(fill="x")
-        self.name_field.entry.bind("<Return>", lambda _e: self._register())
+        self.submit_button = FlatButton(body, "⊕  Register Skill to Profile", self._save_skill)
+        self.submit_button.pack(fill="x")
+        self.cancel_edit_button = FlatButton(body, "Cancel Edit", lambda: self.show(), "secondary")
+        self.name_field.entry.bind("<Return>", lambda _e: self._save_skill())
         return card
 
     # ------------------------------------------------------------------
-    def _register(self) -> None:
+    def _edit(self, skill: dict) -> None:
+        self._editing_skill_id = skill["skill_id"]
+        self.form_title.configure(text="Edit Capability")
+        self.name_field.set_value(skill["name"])
+        self.category_field.set_value(skill["category"])
+        self.level_field.set_value(skill["level"])
+        self.description_field.set_value(skill["description"])
+        self.status.clear()
+        self.submit_button.set_text("Save Skill Changes")
+        self.cancel_edit_button.pack(fill="x", pady=(8, 0))
+        self.name_field.focus()
+
+    def _save_skill(self) -> None:
         name = self.name_field.value()
         description = self.description_field.value()
-        existing = [s["name"] for s in self.store.get_skills(self.user["student_id"])]
+        existing = [
+            s["name"] for s in self.store.get_skills(self.user["student_id"])
+            if s["skill_id"] != self._editing_skill_id
+        ]
         ok, message = validate_skill(name, description, existing)
         self.name_field.set_error(not ok and "Description" not in message)
         self.description_field.set_error(not ok and "Description" in message)
@@ -107,8 +127,14 @@ class SkillsScreen(BaseScreen):
             self.status.show_error(message)
             return
         level = self.level_field.value()
-        self.store.add_skill(self.user["student_id"], name, self.category_field.value(), level, description)
-        self.show(confirmed=f"'{name}' added to your profile!")
+        category = self.category_field.value()
+        if self._editing_skill_id is None:
+            self.store.add_skill(self.user["student_id"], name, category, level, description)
+            confirmation = f"'{name}' added to your profile!"
+        else:
+            self.store.update_skill(self._editing_skill_id, name, category, level, description)
+            confirmation = f"'{name}' updated on your profile!"
+        self.show(confirmed=confirmation)
 
     def _delete(self, skill: dict) -> None:
         if messagebox.askyesno("Remove skill", f"Remove '{skill['name']}' from your profile?"):
